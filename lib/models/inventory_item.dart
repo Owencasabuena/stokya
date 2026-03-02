@@ -5,6 +5,8 @@ class InventoryItem {
   final String id;
   final String name;
   final double price;
+  final double costPrice;
+  final double salePrice;
   final int stock;
   final String? barcode;
   final String? category;
@@ -16,6 +18,8 @@ class InventoryItem {
     required this.id,
     required this.name,
     required this.price,
+    this.costPrice = 0,
+    this.salePrice = 0,
     required this.stock,
     this.barcode,
     this.category,
@@ -31,6 +35,8 @@ class InventoryItem {
       id: doc.id,
       name: data['name'] ?? '',
       price: (data['price'] ?? 0).toDouble(),
+      costPrice: (data['costPrice'] ?? data['price'] ?? 0).toDouble(),
+      salePrice: (data['salePrice'] ?? data['price'] ?? 0).toDouble(),
       stock: (data['stock'] ?? 0).toInt(),
       barcode: data['barcode'],
       category: data['category'],
@@ -46,6 +52,8 @@ class InventoryItem {
       'name': name,
       'nameLower': name.toLowerCase(),
       'price': price,
+      'costPrice': costPrice,
+      'salePrice': salePrice,
       'stock': stock,
       'barcode': barcode,
       'category': category,
@@ -55,11 +63,16 @@ class InventoryItem {
     };
   }
 
+  /// Profit per unit sold.
+  double get profit => salePrice - costPrice;
+
   /// Creates a copy of this item with optional field overrides.
   InventoryItem copyWith({
     String? id,
     String? name,
     double? price,
+    double? costPrice,
+    double? salePrice,
     int? stock,
     String? barcode,
     String? category,
@@ -71,6 +84,8 @@ class InventoryItem {
       id: id ?? this.id,
       name: name ?? this.name,
       price: price ?? this.price,
+      costPrice: costPrice ?? this.costPrice,
+      salePrice: salePrice ?? this.salePrice,
       stock: stock ?? this.stock,
       barcode: barcode ?? this.barcode,
       category: category ?? this.category,

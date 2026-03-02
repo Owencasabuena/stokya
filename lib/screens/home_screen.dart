@@ -7,7 +7,9 @@ import '../providers/theme_provider.dart';
 import '../widgets/inventory_card.dart';
 import 'item_detail_screen.dart';
 import 'add_item_screen.dart';
+import 'checkout_screen.dart';
 import 'history_screen.dart';
+import 'sales_dashboard_screen.dart';
 import 'scanner_screen.dart';
 
 /// Main home screen showing the inventory list with search, sort, and scan.
@@ -226,6 +228,30 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             tooltip: isDark ? 'Light Mode' : 'Dark Mode',
             onPressed: () => themeProvider.toggleTheme(),
+          ),
+          // Sales Dashboard button
+          IconButton(
+            icon: const Icon(Icons.bar_chart_rounded, size: 22),
+            tooltip: 'Sales Dashboard',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const SalesDashboardScreen()),
+              );
+            },
+          ),
+          // Checkout button
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_checkout_rounded, size: 22),
+            tooltip: 'Checkout',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const CheckoutScreen()),
+              );
+            },
           ),
           // History button
           IconButton(

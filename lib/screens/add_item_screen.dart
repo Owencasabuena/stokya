@@ -20,7 +20,8 @@ class AddItemScreen extends StatefulWidget {
 
 class _AddItemScreenState extends State<AddItemScreen> {
   final _nameController = TextEditingController();
-  final _priceController = TextEditingController();
+  final _costPriceController = TextEditingController();
+  final _salePriceController = TextEditingController();
   final _stockController = TextEditingController(text: '0');
   final _storageService = StorageService();
   final _loggerService = LoggerService();
@@ -33,7 +34,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _priceController.dispose();
+    _costPriceController.dispose();
+    _salePriceController.dispose();
     _stockController.dispose();
     super.dispose();
   }
@@ -117,7 +119,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   Future<void> _saveItem() async {
     final name = _nameController.text.trim();
-    final priceText = _priceController.text.trim();
+    final costPriceText = _costPriceController.text.trim();
+    final salePriceText = _salePriceController.text.trim();
     final stockText = _stockController.text.trim();
 
     // Validate
@@ -131,12 +134,23 @@ class _AddItemScreenState extends State<AddItemScreen> {
       return;
     }
 
-    final price = double.tryParse(priceText);
-    if (price == null || price < 0) {
+    final costPrice = double.tryParse(costPriceText);
+    if (costPrice == null || costPrice < 0) {
       ShadToaster.of(context).show(
         const ShadToast.destructive(
-          title: Text('Invalid Price'),
-          description: Text('Please enter a valid price.'),
+          title: Text('Invalid Cost Price'),
+          description: Text('Please enter a valid cost price.'),
+        ),
+      );
+      return;
+    }
+
+    final salePrice = double.tryParse(salePriceText);
+    if (salePrice == null || salePrice < 0) {
+      ShadToaster.of(context).show(
+        const ShadToast.destructive(
+          title: Text('Invalid Sale Price'),
+          description: Text('Please enter a valid sale price.'),
         ),
       );
       return;
@@ -170,7 +184,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
       final item = InventoryItem(
         id: '',
         name: name,
-        price: price,
+        price: salePrice,
+        costPrice: costPrice,
+        salePrice: salePrice,
         stock: stock,
         barcode: _scannedBarcode,
         category: _selectedCategory,
@@ -190,7 +206,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
           uid: user.uid,
           itemName: name,
           quantity: stock,
-          price: price,
+          price: salePrice,
         );
 
         if (!mounted) return;
@@ -340,19 +356,51 @@ class _AddItemScreenState extends State<AddItemScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Price
-            _buildLabel('Price (₱) *'),
-            const SizedBox(height: 8),
-            ShadInput(
-              controller: _priceController,
-              placeholder: const Text('0.00'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              prefix: Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Icon(Icons.sell_outlined,
-                    size: 18, color: Colors.grey[600]),
-              ),
+            // Cost Price & Sale Price (side by side)
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel('Cost Price (₱) *'),
+                      const SizedBox(height: 8),
+                      ShadInput(
+                        controller: _costPriceController,
+                        placeholder: const Text('0.00'),
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        prefix: Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Icon(Icons.money_off_rounded,
+                              size: 18, color: Colors.grey[600]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel('Sale Price (₱) *'),
+                      const SizedBox(height: 8),
+                      ShadInput(
+                        controller: _salePriceController,
+                        placeholder: const Text('0.00'),
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        prefix: Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Icon(Icons.sell_outlined,
+                              size: 18, color: Colors.grey[600]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
 
