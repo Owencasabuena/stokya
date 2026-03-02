@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/inventory_item.dart';
 import '../providers/auth_provider.dart' as app;
 import '../providers/inventory_provider.dart';
+import '../services/logger_service.dart';
+import '../services/storage_service.dart';
 import '../widgets/stock_adjustment_buttons.dart';
 
 /// Displays item details with stock management and delete functionality.
@@ -24,6 +27,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   bool _isEditingPrice = false;
   bool _hasChanges = false;
   bool _isSaving = false;
+  final _loggerService = LoggerService();
 
   @override
   void initState() {
@@ -98,6 +102,25 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     });
 
     if (success) {
+      // Log stock/price changes
+      if (_currentStock != widget.item.stock) {
+        await _loggerService.logStockUpdated(
+          uid: user.uid,
+          itemName: widget.item.name,
+          oldStock: widget.item.stock,
+          newStock: _currentStock,
+        );
+      }
+      if (_currentPrice != widget.item.price) {
+        await _loggerService.logPriceUpdated(
+          uid: user.uid,
+          itemName: widget.item.name,
+          oldPrice: widget.item.price,
+          newPrice: _currentPrice,
+        );
+      }
+
+      if (!mounted) return;
       setState(() => _hasChanges = false);
       ShadToaster.of(context).show(
         const ShadToast(
@@ -152,6 +175,13 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     if (!mounted) return;
 
     if (success) {
+      // Log deletion
+      await _loggerService.logItemDeleted(
+        uid: user.uid,
+        itemName: widget.item.name,
+      );
+
+      if (!mounted) return;
       Navigator.of(context).pop(); // Go back to home
       ShadToaster.of(context).show(
         const ShadToast(
@@ -198,23 +228,38 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 children: [
                   Row(
                     children: [
-                      // Icon
+                      // Image or Icon
                       Container(
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          gradient: !StorageService.imageExists(widget.item.imageUrl)
+                              ? const LinearGradient(
+                                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                )
+                              : null,
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(
-                          Icons.inventory_2_rounded,
-                          color: Colors.white,
-                          size: 28,
-                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: StorageService.imageExists(widget.item.imageUrl)
+                            ? Image.file(
+                                File(widget.item.imageUrl!),
+                                width: 56,
+                                height: 56,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => const Icon(
+                                  Icons.inventory_2_rounded,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.inventory_2_rounded,
+                                color: Colors.white,
+                                size: 28,
+                              ),
                       ),
                       const SizedBox(width: 16),
                       // Name & category
@@ -224,10 +269,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                           children: [
                             Text(
                               widget.item.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: ShadTheme.of(context)
+                                    .colorScheme
+                                    .foreground,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -342,12 +389,14 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Stock Management',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: ShadTheme.of(context)
+                          .colorScheme
+                          .foreground,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -379,12 +428,14 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                   const SizedBox(height: 24),
 
                   // Quick adjustment buttons
-                  const Text(
+                  Text(
                     'Quick Adjust',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white70,
+                      color: ShadTheme.of(context)
+                          .colorScheme
+                          .mutedForeground,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -392,12 +443,14 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                   const SizedBox(height: 20),
 
                   // Manual entry
-                  const Text(
+                  Text(
                     'Manual Entry',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white70,
+                      color: ShadTheme.of(context)
+                          .colorScheme
+                          .mutedForeground,
                     ),
                   ),
                   const SizedBox(height: 10),

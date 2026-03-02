@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart' as app;
+import '../providers/theme_provider.dart';
 
 /// Login screen with email/password authentication.
 class LoginScreen extends StatefulWidget {
@@ -59,7 +60,36 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Center(
+        child: Stack(
+          children: [
+            // Theme toggle (top right)
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Consumer<ThemeProvider>(
+                builder: (context, themeProvider, _) {
+                  return GestureDetector(
+                    onTap: () => themeProvider.toggleTheme(),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        themeProvider.isDarkMode
+                            ? Icons.light_mode_rounded
+                            : Icons.dark_mode_rounded,
+                        size: 20,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            // Main content
+            Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Column(
@@ -86,12 +116,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
 
                 // App Name
-                const Text(
+                Text(
                   'Stokya',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: ShadTheme.of(context).colorScheme.foreground,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -196,6 +226,8 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
+          ],
+        ),
       ),
     );
   }
@@ -237,6 +269,7 @@ class _RegisterScreenInlineState extends State<RegisterScreenInline> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -310,6 +343,22 @@ class _RegisterScreenInlineState extends State<RegisterScreenInline> {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              return IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode
+                      ? Icons.light_mode_rounded
+                      : Icons.dark_mode_rounded,
+                  size: 22,
+                ),
+                tooltip: themeProvider.isDarkMode ? 'Light Mode' : 'Dark Mode',
+                onPressed: () => themeProvider.toggleTheme(),
+              );
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: Center(
@@ -324,7 +373,6 @@ class _RegisterScreenInlineState extends State<RegisterScreenInline> {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -381,11 +429,25 @@ class _RegisterScreenInlineState extends State<RegisterScreenInline> {
                 ShadInput(
                   controller: _confirmPasswordController,
                   placeholder: const Text('Confirm password'),
-                  obscureText: true,
+                  obscureText: _obscureConfirmPassword,
                   prefix: Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: Icon(Icons.lock_outlined,
                         size: 18, color: Colors.grey[600]),
+                  ),
+                  suffix: GestureDetector(
+                    onTap: () => setState(
+                        () => _obscureConfirmPassword = !_obscureConfirmPassword),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Icon(
+                        _obscureConfirmPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        size: 18,
+                        color: Colors.grey[600],
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),

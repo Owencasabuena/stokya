@@ -1,10 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/inventory_item.dart';
+import '../services/storage_service.dart';
 
-/// A card widget displaying an inventory item's name, price, and stock count.
+/// A card widget displaying an inventory item's name, price, stock, and image.
 ///
-/// Taps navigate to the item detail screen.
+/// Uses Image.file() for local image paths with a placeholder fallback.
 class InventoryCard extends StatelessWidget {
   final InventoryItem item;
   final VoidCallback onTap;
@@ -29,32 +31,51 @@ class InventoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fg = ShadTheme.of(context).colorScheme.foreground;
+    final mutedFg = ShadTheme.of(context).colorScheme.mutedForeground;
+    final hasImage = StorageService.imageExists(item.imageUrl);
+
     return GestureDetector(
       onTap: onTap,
       child: ShadCard(
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            // Item icon with gradient background
+            // Item image or placeholder icon
             Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFF6366F1).withValues(alpha: 0.2),
-                    const Color(0xFF8B5CF6).withValues(alpha: 0.1),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
                 borderRadius: BorderRadius.circular(12),
+                gradient: !hasImage
+                    ? LinearGradient(
+                        colors: [
+                          const Color(0xFF6366F1).withValues(alpha: 0.2),
+                          const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null,
               ),
-              child: const Icon(
-                Icons.inventory_2_outlined,
-                color: Color(0xFF6366F1),
-                size: 24,
-              ),
+              clipBehavior: Clip.antiAlias,
+              child: hasImage
+                  ? Image.file(
+                      File(item.imageUrl!),
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.inventory_2_outlined,
+                        color: Color(0xFF6366F1),
+                        size: 24,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.inventory_2_outlined,
+                      color: Color(0xFF6366F1),
+                      size: 24,
+                    ),
             ),
             const SizedBox(width: 14),
 
@@ -65,10 +86,10 @@ class InventoryCard extends StatelessWidget {
                 children: [
                   Text(
                     item.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: fg,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -78,7 +99,7 @@ class InventoryCard extends StatelessWidget {
                     item.category ?? 'Uncategorized',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[500],
+                      color: mutedFg,
                     ),
                   ),
                 ],
@@ -91,10 +112,10 @@ class InventoryCard extends StatelessWidget {
               children: [
                 Text(
                   '₱${item.price.toStringAsFixed(2)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: fg,
                   ),
                 ),
                 const SizedBox(height: 4),

@@ -8,6 +8,7 @@ class InventoryItem {
   final int stock;
   final String? barcode;
   final String? category;
+  final String? imageUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -18,6 +19,7 @@ class InventoryItem {
     required this.stock,
     this.barcode,
     this.category,
+    this.imageUrl,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -32,6 +34,7 @@ class InventoryItem {
       stock: (data['stock'] ?? 0).toInt(),
       barcode: data['barcode'],
       category: data['category'],
+      imageUrl: data['imageUrl'],
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
@@ -46,6 +49,7 @@ class InventoryItem {
       'stock': stock,
       'barcode': barcode,
       'category': category,
+      'imageUrl': imageUrl,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
     };
@@ -59,6 +63,7 @@ class InventoryItem {
     int? stock,
     String? barcode,
     String? category,
+    String? imageUrl,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -69,6 +74,7 @@ class InventoryItem {
       stock: stock ?? this.stock,
       barcode: barcode ?? this.barcode,
       category: category ?? this.category,
+      imageUrl: imageUrl ?? this.imageUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
